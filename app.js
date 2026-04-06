@@ -21,6 +21,8 @@ app.use("/api/books", require("./routes/books"));
 app.use("/api/authors", require("./routes/authors"));
 app.use("/api/auth", require("./routes/auth"));
 app.use("/api/users", require("./routes/user"));
+app.use("/api/khadem", require("./routes/san-george-auth"));
+
 
 // Error Handler Middleware
 app.use(notFound);

@@ -1,9 +1,8 @@
 const express = require("express");
 const router = express.Router();
 const Joi = require("joi");
-const {validateCreateBook,validateUpdateBook,Book} = require("../models/Book");
-const asyncHandler = require("express-async-handler");
 const {verifyTokenAndAdmin} = require("../middleewares/verifyToken");
+const {getAllBooks,getBooksbyId,createBook,updateBook,deleteBook} = require("../controllers/bookController");
 const books = [
     {
         id: 1,
@@ -31,103 +30,30 @@ const books = [
     },
 ];
 
-/*
- * @desc Get all books
- * @route  /api/books
- * @method GET
- * @access Public
- */
-router.get("/", asyncHandler(async(req, res) => {
-    const books = await Book.find().populate("author",["_id","firstName","lastName"]);
-    res.json(books);
-}));
 
-/*
- * @desc Get book by id
- * @route  /api/books/:id
- * @method GET
- * @access Public
- */
-router.get("/:id", asyncHandler(async(req, res) => {
-    const book = await Book.findById(req.params.id).populate("author");
-    if (book) {
-        res.status(200).json(book);
-    } else {
-        res.status(404).json({ message: "Book not found" })
-    }
-}));
+// router.get("/", getAllBooks);
+// router.get("/:id", getBooksbyId);
 
-/*
- * @desc Create new book
- * @route  /api/books
- * @method POST
- * @access Private (only admin)
- */
-router.post("/",verifyTokenAndAdmin, asyncHandler(async(req, res) => {
+//api/books
+router.route("/")
+.get(getAllBooks)
+.post(verifyTokenAndAdmin,createBook);
 
-    const { error } = validateCreateBook(req.body);
-    if (error) {
-        return res.status(400).json({ message: error.details[0].message });
-    }
-    console.log(req.body);
-    const book = new Book({
-        title: req.body.title,
-        author: req.body.author,
-        description: req.body.description,
-        price: req.body.price,
-        cover: req.body.cover,
-    });
-    const result = await book.save();
-    res.status(201).json({message:"Book created successfully",result});
-}));
+// api/books/:id
+router.route("/:id")
+.get(getBooksbyId)
+.put(verifyTokenAndAdmin,updateBook)
+.delete(verifyTokenAndAdmin,deleteBook);
 
-/*
- * @desc Update book
- * @route  /api/books/:id
- * @method PUT
- * @access Private (only admin)
- */
-router.put("/:id",verifyTokenAndAdmin, asyncHandler(async(req, res) => {
-    const { error } = validateUpdateBook(req.body);
-    if (error) {
-        return res.status(400).json({ message: error.details[0].message });
-    }
-    const updatedBook = await Book.findByIdAndUpdate(req.params.id, {
-    
-    $set: {
-    title: req.body.title,
-    author: req.body.author,
-    description: req.body.description,
-    price: req.body.price,
-    cover: req.body.cover,
-}
-    }, { new: true });
-    if (updatedBook) {
-        res.status(200).json({ message: "Book updated successfully",updatedBook });
-    }
-    else{
-         res.status(404).json({ message: "Book not found" });
-    }
-}));
 
-/*
- * @desc Delete book
- * @route  /api/books/:id
- * @method DELETE
- * @access Private (only admin)
- */
-router.delete("/:id",verifyTokenAndAdmin, asyncHandler(async(req, res) => {
-    const book = await Book.findById(req.params.id);
-    if (book) {
-        await Book.findByIdAndDelete(req.params.id);
-        res.status(200).json({ message: "Book deleted successfully" });
-    }
-    else{
-        res.status(404).json({ message: "Book not found" });
-    }
-}));
+// router.post("/",verifyTokenAndAdmin,createBook );
 
-// Validate Create book
+
+// router.put("/:id",verifyTokenAndAdmin,updateBook );
+
+
+// router.delete("/:id",verifyTokenAndAdmin,deleteBook );
+
 
 
 module.exports = router;

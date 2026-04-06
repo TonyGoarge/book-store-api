@@ -26,9 +26,10 @@ const authors = [
  */
 router.get("/",asyncHandler(
     async(req,res)=>{
-    
+    const page = parseInt(req.query.page) || 1;
+    const authorperpage = parseInt(req.query.authorperpage) || 2;
         // const authorlist = await Author.find().sort({firstName:-1}).select("firstName lastName");
-        const authorlist = await Author.find();
+        const authorlist = await Author.find().skip((page-1)*authorperpage).limit(authorperpage);
 
         res.status(200).json(authorlist);
     
