@@ -16,7 +16,7 @@ router.get("/",asyncHandler(
     const page = parseInt(req.query.page) || 1;
     const khademperpage = parseInt(req.query.khademperpage) || 2;
         // const authorlist = await Author.find().sort({firstName:-1}).select("firstName lastName");
-        const khademlist = await Khadem.find().skip((page-1)*khademperpage).limit(khademperpage);
+        const khademlist = await Khadem.find().select("-password").skip((page-1)*khademperpage).limit(khademperpage);
 
         res.status(200).json(khademlist);
     
@@ -32,7 +32,7 @@ router.get("/",asyncHandler(
 router.get("/:id",asyncHandler(
     async(req,res)=>{
     // const author = authors.find(b=>b.id === parseInt(req.params.id));
-    const khadem = await Khadem.findById(req.params.id);
+    const khadem = await Khadem.findById(req.params.id).select("-password");
     if(khadem){
         res.status(200).json(khadem);
     }

@@ -23,6 +23,7 @@ app.use("/api/auth", require("./routes/auth"));
 app.use("/api/users", require("./routes/user"));
 app.use("/api/khadem", require("./routes/san-george-auth"));
 app.use("/api/khadem", require("./routes/khadem"));
+app.use("/api/attendance", require("./routes/attendance"));
 
 
 // Error Handler Middleware
