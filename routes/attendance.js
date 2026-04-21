@@ -36,7 +36,7 @@ const toMidnight = (d) => {
  */
 router.post(
   "/",
-  verifyTokenAndAuthorization,
+  verifyToken,
   asyncHandler(async (req, res) => {
     const { error } = validateCreateAttendance(req.body);
     if (error) {
