@@ -6,7 +6,7 @@ const {
   validateCreateAttendance,
   validateUpdateAttendance,
 } = require("../models/Attendance");
-const { verifyToken, verifyTokenAndAdmin } = require("../middleewares/verifyToken");
+const { verifyToken, verifyTokenAndAdmin, verifyTokenAndAuthorization } = require("../middleewares/verifyToken");
 
 
 // ─── Helper: normalise a date to midnight UTC ─────────────────────────────────
@@ -36,7 +36,7 @@ const toMidnight = (d) => {
  */
 router.post(
   "/",
-  verifyToken,
+  verifyTokenAndAuthorization,
   asyncHandler(async (req, res) => {
     const { error } = validateCreateAttendance(req.body);
     if (error) {
@@ -131,7 +131,7 @@ router.get(
  */
 router.get(
   "/khadem/:khademId",
-  verifyToken,
+  verifyTokenAndAuthorization,
   asyncHandler(async (req, res) => {
     const page  = parseInt(req.query.page)  || 1;
     const limit = parseInt(req.query.limit) || 20;
@@ -145,6 +145,7 @@ router.get(
 
     const [records, total] = await Promise.all([
       Attendance.find(filter)
+        .populate("khadem", "name imageUrl")   // embed khadem name + avatar
         .sort({ date: -1 })
         .skip((page - 1) * limit)
         .limit(limit),
@@ -164,7 +165,7 @@ router.get(
  */
 router.get(
   "/:id",
-  verifyToken,
+  verifyTokenAndAuthorization,
   asyncHandler(async (req, res) => {
     const record = await Attendance.findById(req.params.id).populate("khadem", "name");
     if (!record) {

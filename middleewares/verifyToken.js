@@ -21,7 +21,7 @@ function verifyToken(req, res, next) {
 //verify token and Authorization
 function verifyTokenAndAuthorization(req, res, next) {
     verifyToken(req, res, () => {
-            if(req.params.id === req.user.id || req.user.isAdmin){ //req.params.id => url, req.user.id => token -لو انت صاحب الاكونت او admin
+            if(req.params.khademId === req.user.id || req.user.isAdmin){ //req.params.id => url, req.user.id => token -لو انت صاحب الاكونت او admin
         return next();
     }
     return res.status(403).json({ message: "You are not allowed" });
