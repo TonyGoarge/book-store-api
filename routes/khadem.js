@@ -24,6 +24,19 @@ router.get("/",asyncHandler(
 ));
 
 /*
+ * @desc Get all khadems names for dropdown menu
+ * @route /api/khadem/all
+ * @method GET
+ * @access Public
+ */
+router.get("/all", asyncHandler(async (req, res) => {
+  const khadems = await Khadem.find()
+    .select("name _id")
+    .sort({ name: 1 });
+
+  res.status(200).json(khadems);
+}));
+/*
  * @desc Get khadem by id
  * @route /api/khadem/:id
  * @method GET
