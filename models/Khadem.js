@@ -53,6 +53,10 @@ const khademSchema = new mongoose.Schema({
         type: Boolean,
         default: false,
     },
+    fcmToken: {
+        type: String,
+        default: null,
+    },
     createdAt:{
         type: Date,
         default: Date.now,
@@ -81,6 +85,7 @@ function validateRegisterKhadem(obj){
         email: Joi.string().trim().min(3).max(200).required(),
         church: Joi.string().trim().min(3).max(200).required(),
         password: Joi.string().trim().min(6).required(),
+        fcmToken: Joi.string().trim().min(3).max(200),
         birthDate: Joi.date(),
     });
     return schema.validate(obj);

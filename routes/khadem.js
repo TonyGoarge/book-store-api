@@ -36,6 +36,22 @@ router.get("/all", asyncHandler(async (req, res) => {
 
   res.status(200).json(khadems);
 }));
+
+// في khadem.js routes — أضف قبل /:id
+router.get("/birthdays-today", asyncHandler(async (req, res) => {
+  const today = new Date();
+  const khadems = await Khadem.find({
+    fcmToken: { $ne: null },
+    $expr: {
+      $and: [
+        { $eq: [{ $month: "$birthDate" }, today.getMonth() + 1] },
+        { $eq: [{ $dayOfMonth: "$birthDate" }, today.getDate()] },
+      ],
+    },
+  }).select("name fcmToken");
+
+  res.status(200).json(khadems);
+}));
 /*
  * @desc Get khadem by id
  * @route /api/khadem/:id
@@ -54,7 +70,12 @@ router.get("/:id",asyncHandler(
     }
 }
 ));
-
+ 
+// PUT /api/khadem/:id/fcm-token
+router.put("/:id/fcm-token", verifyToken, asyncHandler(async (req, res) => {
+  await Khadem.findByIdAndUpdate(req.params.id, { fcmToken: req.body.token });
+  res.status(200).json({ message: "Token updated" });
+}));
 
 
 /*
