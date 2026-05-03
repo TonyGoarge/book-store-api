@@ -5,17 +5,7 @@ const {Khadem,validateCreateKhadem,validateUpdateKhadem} = require("../models/Kh
 const {verifyTokenAndAdmin, verifyToken} = require("../middleewares/verifyToken");
 const admin = require("firebase-admin");
 
-// Initialize Firebase Admin مرة واحدة
-if (!admin.apps.length) {
-  admin.initializeApp({
-    credential: admin.credential.cert({
-      projectId: process.env.project_id,
-      clientEmail: process.env.CLIENT_EMAIL, 
-      privateKey: process.env.private_key   ?.replace(/\\n/g, '\n')
-        ?.replace(/"/g, ''),
-    }),
-  });
-}
+
 
 
 /*
@@ -50,9 +40,28 @@ router.get("/all", asyncHandler(async (req, res) => {
   res.status(200).json(khadems);
 }));
 
+/*
+ * @desc Get khadems birthdays today and notify
+ * @route /api/khadem/birthdays-today-and-notify
+ * @method GET
+ * @access Private(only admin)
+ */
 router.get("/birthdays-today-and-notify", asyncHandler(async (req, res) => {
   if (req.headers['authorization'] !== `Bearer ${process.env.CORN_SECRET}`) {
     return res.status(401).json({ message: "Unauthorized" });
+  }
+
+  // ← Firebase init جوا الـ function مش برا
+  if (!admin.apps.length) {
+    admin.initializeApp({
+      credential: admin.credential.cert({
+        projectId: process.env.project_id,
+        clientEmail: process.env.CLIENT_EMAIL,
+        privateKey: process.env.private_key
+          ?.replace(/\\n/g, '\n')
+          ?.replace(/"/g, ''),
+      }),
+    });
   }
 
   const today = new Date();
