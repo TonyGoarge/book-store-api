@@ -2,7 +2,19 @@ const express = require("express");
 const router = express.Router();
 const asyncHandler = require("express-async-handler");
 const {Khadem,validateCreateKhadem,validateUpdateKhadem} = require("../models/Khadem");
-const {verifyTokenAndAdmin} = require("../middleewares/verifyToken");
+const {verifyTokenAndAdmin, verifyToken} = require("../middleewares/verifyToken");
+const admin = require("firebase-admin");
+
+// Initialize Firebase Admin مرة واحدة
+if (!admin.apps.length) {
+  admin.initializeApp({
+    credential: admin.credential.cert({
+      projectId: process.env.project_id,
+      clientEmail: process.env.CLIENT_EMAIL, 
+      privateKey: process.env.private_key?.replace(/\\n/g, '\n'),
+    }),
+  });
+}
 
 
 /*
@@ -37,8 +49,11 @@ router.get("/all", asyncHandler(async (req, res) => {
   res.status(200).json(khadems);
 }));
 
-// في khadem.js routes — أضف قبل /:id
-router.get("/birthdays-today", asyncHandler(async (req, res) => {
+router.get("/birthdays-today-and-notify", asyncHandler(async (req, res) => {
+  if (req.headers['authorization'] !== `Bearer ${process.env.CORN_SECRET}`) {
+    return res.status(401).json({ message: "Unauthorized" });
+  }
+
   const today = new Date();
   const khadems = await Khadem.find({
     fcmToken: { $ne: null },
@@ -50,7 +65,23 @@ router.get("/birthdays-today", asyncHandler(async (req, res) => {
     },
   }).select("name fcmToken");
 
-  res.status(200).json(khadems);
+  const results = [];
+  for (const khadem of khadems) {
+    try {
+      await admin.messaging().send({
+        token: khadem.fcmToken,
+        notification: {
+          title: "🎂 عيد ميلاد سعيد!",
+          body: `كل سنة وانت طيب يا ${khadem.name}`,
+        },
+      });
+      results.push({ name: khadem.name, status: "sent" });
+    } catch (err) {
+      results.push({ name: khadem.name, status: "failed", error: err.message });
+    }
+  }
+
+  res.status(200).json({ total: results.length, results });
 }));
 /*
  * @desc Get khadem by id
