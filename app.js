@@ -25,7 +25,6 @@ app.use("/api/khadem", require("./routes/san-george-auth"));
 app.use("/api/khadem", require("./routes/khadem"));
 app.use("/api/attendance", require("./routes/attendance"));
 app.use("/api/statistics", require("./routes/statistics"));
-app.use("/api/birthdays", require("./routes/birthday_cron"));
 
 
 // Error Handler Middleware
