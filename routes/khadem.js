@@ -11,7 +11,8 @@ if (!admin.apps.length) {
     credential: admin.credential.cert({
       projectId: process.env.project_id,
       clientEmail: process.env.CLIENT_EMAIL, 
-      privateKey: process.env.private_key?.replace(/\\n/g, '\n'),
+      privateKey: process.env.private_key   ?.replace(/\\n/g, '\n')  // ← مهم جداً
+        ?.replace(/"/g, ''),
     }),
   });
 }
