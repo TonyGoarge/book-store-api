@@ -114,7 +114,7 @@ router.get("/:id",asyncHandler(
  
 // PUT /api/khadem/:id/fcm-token
 router.put("/:id/fcm-token", verifyToken, asyncHandler(async (req, res) => {
-  await Khadem.findByIdAndUpdate(req.params.id, { fcmToken: req.body.token });
+  await Khadem.findByIdAndUpdate(req.params.id, { fcmToken: req.body.fcmToken });
   res.status(200).json({ message: "Token updated" });
 }));
 
