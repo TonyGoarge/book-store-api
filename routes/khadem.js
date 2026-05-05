@@ -67,12 +67,12 @@ router.get("/birthdays-today-and-notify", asyncHandler(async (req, res) => {
   const today = new Date();
   const khadems = await Khadem.find({
     fcmToken: { $ne: null },
-    $expr: {
-      $and: [
-        { $eq: [{ $month: "$birthDate" }, today.getMonth() + 1] },
-        { $eq: [{ $dayOfMonth: "$birthDate" }, today.getDate()] },
-      ],
-    },
+    // $expr: {
+    //   $and: [
+    //     { $eq: [{ $month: "$birthDate" }, today.getMonth() + 1] },
+    //     { $eq: [{ $dayOfMonth: "$birthDate" }, today.getDate()] },
+    //   ],
+    // },
   }).select("name fcmToken");
 
   const results = [];
