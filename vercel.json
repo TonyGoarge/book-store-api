@@ -2,7 +2,7 @@
   "crons": [
     {
       "path": "/api/khadem/birthdays-today-and-notify",
-      "schedule": "40 13 * * *"
+      "schedule": "50 13 * * *"
     }
   ]
 }
