@@ -1,6 +1,6 @@
 const express = require("express");
 const logger = require("./middleewares/logger");
-const {notFound,errorHandler} = require("./middleewares/error");
+const { notFound, errorHandler } = require("./middleewares/error");
 require("dotenv").config();
 const connectToDB = require("./config/db");
 
@@ -14,7 +14,9 @@ const app = express();
 
 // Apply middleware
 app.use(express.json());
+app.use(express.urlencoded({ extended: false }));
 app.use(logger);
+app.set("view engine", "ejs");
 
 //Routes
 app.use("/api/books", require("./routes/books"));
@@ -25,8 +27,7 @@ app.use("/api/khadem", require("./routes/san-george-auth"));
 app.use("/api/khadem", require("./routes/khadem"));
 app.use("/api/attendance", require("./routes/attendance"));
 app.use("/api/statistics", require("./routes/statistics"));
-
-
+app.use("/password", require("./routes/password"));
 // Error Handler Middleware
 app.use(notFound);
 app.use(errorHandler);
