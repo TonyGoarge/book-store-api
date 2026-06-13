@@ -27,7 +27,7 @@ app.use("/api/khadem", require("./routes/san-george-auth"));
 app.use("/api/khadem", require("./routes/khadem"));
 app.use("/api/attendance", require("./routes/attendance"));
 app.use("/api/statistics", require("./routes/statistics"));
-app.use("/password", require("./routes/password"));
+app.use("api/password", require("./routes/password"));
 // Error Handler Middleware
 app.use(notFound);
 app.use(errorHandler);
