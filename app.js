@@ -28,6 +28,7 @@ app.use("/api/khadem", require("./routes/khadem"));
 app.use("/api/attendance", require("./routes/attendance"));
 app.use("/api/statistics", require("./routes/statistics"));
 app.use("/api/password", require("./routes/password"));
+app.use("/api/upload", require("./routes/upload"));
 // Error Handler Middleware
 app.use(notFound);
 app.use(errorHandler);

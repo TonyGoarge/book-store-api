@@ -125,31 +125,63 @@ router.put("/:id/fcm-token", verifyToken, asyncHandler(async (req, res) => {
  * @method PUT
  * @access Private(only admin)
  */
-router.put("/:id",verifyTokenAndAdmin,asyncHandler(async (req,res)=>{
-    const {error} = validateUpdateKhadem(req.body);
-    if(error){
-        return res.status(400).json({message:error.details[0].message});
-    }   
+// router.put("/:id",verifyTokenAndAdmin,asyncHandler(async (req,res)=>{
+//     const {error} = validateUpdateKhadem(req.body);
+//     if(error){
+//         return res.status(400).json({message:error.details[0].message});
+//     }   
     
     
-    const khadem =  await Khadem.findByIdAndUpdate(req.params.id,{
-        $set:{
-            name: req.body.name,
-            imageUrl: req.body.imageUrl,
-            address: req.body.address,
-            phone: req.body.phone,
-            email: req.body.email,
-            church: req.body.church,
-            birthDate: req.body.birthDate,
-        }
-    },{new:true});
-    res.status(200).json({message:"Author updated successfully",khadem});
-}
+//     const khadem =  await Khadem.findByIdAndUpdate(req.params.id,{
+//         $set:{
+//             name: req.body.name,
+//             imageUrl: req.body.imageUrl,
+//             address: req.body.address,
+//             phone: req.body.phone,
+//             email: req.body.email,
+//             church: req.body.church,
+//             birthDate: req.body.birthDate,
+//         }
+//     },{new:true});
+//     res.status(200).json({message:"Author updated successfully",khadem});
+// }
+// ));
+router.put(
+"/:id", verifyTokenAndAdmin,upload.single("image"), asyncHandler(async (req, res) => {
 
+    const { error } = validateUpdateKhadem(req.body);
+    if (error) {
+      return res.status(400).json({
+        message: error.details[0].message,
+      });
+    }
 
+    const updateData = {
+      name: req.body.name,
+      address: req.body.address,
+      phone: req.body.phone,
+      email: req.body.email,
+      church: req.body.church,
+      birthDate: req.body.birthDate,
+    };
 
-));
+    // لو المستخدم رفع صورة
 
+    if (req.file) {
+      updateData.imageUrl = `/images/${req.file.filename}`;
+
+    }
+
+    const khadem = await Khadem.findByIdAndUpdate(
+      req.params.id,
+      { $set: updateData },
+      { new: true }
+    );
+    res.status(200).json({
+      message: "Khadem updated successfully",
+      khadem,
+    });
+  }));
 /*
  * @desc Delete author
  * @route /api/authors/:id
