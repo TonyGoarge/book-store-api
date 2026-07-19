@@ -4,7 +4,7 @@ const asyncHandler = require("express-async-handler");
 const {Khadem,validateCreateKhadem,validateUpdateKhadem} = require("../models/Khadem");
 const {verifyTokenAndAdmin, verifyToken} = require("../middleewares/verifyToken");
 const admin = require("firebase-admin");
-
+const upload = require("../middleewares/multer");
 
 
 
@@ -175,8 +175,8 @@ router.put(
     const khadem = await Khadem.findByIdAndUpdate(
       req.params.id,
       { $set: updateData },
-      { new: true }
-    );
+  { returnDocument: "after" }
+);
     res.status(200).json({
       message: "Khadem updated successfully",
       khadem,
