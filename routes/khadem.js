@@ -168,7 +168,7 @@ router.put(
     // لو المستخدم رفع صورة
 
     if (req.file) {
-      updateData.imageUrl = `/images/${req.file.filename}`;
+      updateData.imageUrl = req.file.path;
 
     }
 
