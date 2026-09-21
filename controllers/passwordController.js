@@ -92,7 +92,7 @@ exports.sendForgotPasswordLink = asyncHandler(async (req, res) => {
 
   const resetLink = `${req.protocol}://${req.get(
     "host"
-  )}/password/reset-password/${khadem._id}/${token}`;
+  )}/api/password/reset-password/${khadem._id}/${token}`;
 
   const transporter = nodemailer.createTransport({
     service: "gmail",
