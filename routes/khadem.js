@@ -28,8 +28,8 @@ router.get("/",asyncHandler(
     }
         // const authorlist = await Author.find().sort({firstName:-1}).select("firstName lastName");
         const khademlist = await Khadem.find(filter).select("-password").skip((page-1)*khademperpage).limit(khademperpage);
-        const khademCount = await Khadem.countDocuments(filter);
-        res.status(200).json({khademlist , khademCount});
+      
+        res.status(200).json(khademlist);
     
 }
 ));
