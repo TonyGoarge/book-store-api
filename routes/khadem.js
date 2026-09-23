@@ -18,16 +18,25 @@ router.get("/",asyncHandler(
     async(req,res)=>{
     const page = parseInt(req.query.page) || 1;
     const khademperpage = parseInt(req.query.khademperpage) || 2;
-    const {name , email} = req.query;
+    const { search } = req.query;
     const filter = {};
-    if(name){
-        filter.name = name;
-    }
-    if(email){
-        filter.email = email;
+    if (search) {
+
+      filter.$or = [
+
+        { name: { $regex: search, $options: "i" } },
+
+        { email: { $regex: search, $options: "i" } },
+
+      ];
+
     }
         // const authorlist = await Author.find().sort({firstName:-1}).select("firstName lastName");
-        const khademlist = await Khadem.find(filter).select("-password").skip((page-1)*khademperpage).limit(khademperpage);
+        const khademlist = await Khadem.find(filter)
+        .select("-password")
+        .sort({name:1})
+        .skip((page-1)*khademperpage)
+        .limit(khademperpage);
       
         res.status(200).json(khademlist);
     
