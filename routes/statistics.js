@@ -5,6 +5,10 @@ const asyncHandler = require("express-async-handler");
 const {Khadem,validateCreateKhadem,validateUpdateKhadem} = require("../models/Khadem");
 const {verifyTokenAndAdmin} = require("../middleewares/verifyToken");
 const {Attendance} = require("../models/Attendance");
+const calculateFridayStreak = require("../controllers/calculateFirdayStreak");
+
+
+
 /*
  * @desc Get dashboard statistics for admin
  * @route GET /api/statistics/dashboard
@@ -17,6 +21,7 @@ router.get("/dashboard", verifyTokenAndAdmin, asyncHandler(async (req, res) => {
   const [
     totalKhadem,
     totalAttendanceThisMonth,
+    nameOfServantsInThisMonth,
     attendanceByKhadem,
     upcomingBirthdays,
   ] = await Promise.all([
@@ -26,6 +31,12 @@ router.get("/dashboard", verifyTokenAndAdmin, asyncHandler(async (req, res) => {
     // حضور الشهر الحالي
     Attendance.countDocuments({ date: { $gte: startOfMonth } }),
 
+    // أسماء الخدام اللي حضروا الشهر ده
+    // Attendance.find({ date: { $gte: startOfMonth } }).distinct("khadem").select("name" ),
+     // أسماء الخدام اللي حضروا الشهر ده
+    Attendance.find({ date: { $gte: startOfMonth } })
+      .distinct("khadem")
+      .then(khademIds => Khadem.find({ _id: { $in: khademIds } }).select("name")),
     // أداء كل خادم هذا الشهر
     Attendance.aggregate([
       { $match: { date: { $gte: startOfMonth } } },
@@ -61,8 +72,8 @@ router.get("/dashboard", verifyTokenAndAdmin, asyncHandler(async (req, res) => {
             $multiply: [
               {
                 $divide: [
-                  { $add: ["$massCount", "$serviceCount", "$openingCount"] },
-                  { $multiply: ["$totalDays", 3] },
+                  { $add: ["$massCount", "$serviceCount", "$openingCount", "$kashkolCount"] },
+                  { $multiply: ["$totalDays", 4] },
                 ],
               },
               100,
@@ -100,12 +111,26 @@ router.get("/dashboard", verifyTokenAndAdmin, asyncHandler(async (req, res) => {
       { $sort: { birthMonth: 1, birthDay: 1 } },
     ]),
   ]);
+  // Add Friday streak to each khadem
 
+  const attendanceWithStreak = await Promise.all(
+  attendanceByKhadem.map(async (khadem) => {
+    const streak = await calculateFridayStreak(khadem._id);
+    return {
+      khademId : khadem._id,
+      ...streak,
+    };
+  })
+);
   res.status(200).json({
     totalKhadem,
     totalAttendanceThisMonth,
+    nameOfServantsInThisMonth,
     attendanceByKhadem,
     upcomingBirthdays,
+    attendanceWithStreak,
   });
 }));
+
+
 module.exports = router;
