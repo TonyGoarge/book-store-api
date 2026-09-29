@@ -117,7 +117,7 @@ router.get("/dashboard", verifyTokenAndAdmin, asyncHandler(async (req, res) => {
   attendanceByKhadem.map(async (khadem) => {
     const streak = await calculateFridayStreak(khadem._id);
     return {
-      khademId : khadem._id,
+      ...khadem,
       ...streak,
     };
   })
@@ -126,9 +126,8 @@ router.get("/dashboard", verifyTokenAndAdmin, asyncHandler(async (req, res) => {
     totalKhadem,
     totalAttendanceThisMonth,
     nameOfServantsInThisMonth,
-    attendanceByKhadem,
+    attendanceByKhadem: attendanceWithStreak,
     upcomingBirthdays,
-    attendanceWithStreak,
   });
 }));
 
