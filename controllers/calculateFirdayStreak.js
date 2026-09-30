@@ -1,5 +1,3 @@
-
-
 const mongoose = require("mongoose");
 const { Attendance } = require("../models/Attendance");
 const { Khadem } = require("../models/Khadem");
@@ -21,9 +19,7 @@ const calculateFridayStreak = async (khademId) => {
     throw error;
   }
 
-  // 3. Get ALL attendance records
-  // مهم: لا نضع attendedService: true هنا
-  // لأننا نحتاج معرفة الجمع التي غاب فيها الخادم أيضًا.
+  // 3. Get all attendance records
   const attendances = await Attendance.find({
     khadem: khademId,
   })
@@ -31,23 +27,53 @@ const calculateFridayStreak = async (khademId) => {
     .sort({ date: 1 })
     .lean();
 
-  // 4. Keep Fridays only
-  const fridayAttendances = attendances
-    .map((attendance) => {
-      const date = new Date(attendance.date);
+  // ------------------------------------------------
+  // Create a map of attendance by date
+  // ------------------------------------------------
 
-      // التاريخ عندك محفوظ كـ UTC
-      date.setUTCHours(0, 0, 0, 0);
+  const attendanceByDate = new Map();
 
-      return {
-        date,
-        attendedService: attendance.attendedService === true,
-      };
-    })
-    .filter(({ date }) => date.getUTCDay() === 5);
+  for (const attendance of attendances) {
+    const date = new Date(attendance.date);
 
-  // No Friday attendance records
-  if (fridayAttendances.length === 0) {
+    date.setUTCHours(0, 0, 0, 0);
+
+    const dateKey = date.toISOString().split("T")[0];
+
+    attendanceByDate.set(dateKey, attendance.attendedService === true);
+  }
+
+  // ------------------------------------------------
+  // Find the latest completed Friday
+  // ------------------------------------------------
+
+  const today = new Date();
+
+  today.setUTCHours(0, 0, 0, 0);
+
+  const latestFriday = new Date(today);
+
+  const dayOfWeek = latestFriday.getUTCDay();
+
+  // Friday = 5
+  const daysSinceFriday = (dayOfWeek - 5 + 7) % 7;
+
+  latestFriday.setUTCDate(
+    latestFriday.getUTCDate() - daysSinceFriday
+  );
+
+  // If today is Friday, we do not consider it missed yet.
+  if (dayOfWeek === 5) {
+    latestFriday.setUTCDate(
+      latestFriday.getUTCDate() - 7
+    );
+  }
+
+  // ------------------------------------------------
+  // Find earliest attendance date
+  // ------------------------------------------------
+
+  if (attendances.length === 0) {
     return {
       currentStreak: 0,
       longestStreak: 0,
@@ -55,50 +81,73 @@ const calculateFridayStreak = async (khademId) => {
     };
   }
 
+  const firstAttendanceDate = new Date(attendances[0].date);
+
+  firstAttendanceDate.setUTCHours(0, 0, 0, 0);
+
+  // Find the first Friday on/after first attendance
+  const firstFriday = new Date(firstAttendanceDate);
+
+  const firstDayOfWeek = firstFriday.getUTCDay();
+
+  const daysUntilFriday = (5 - firstDayOfWeek + 7) % 7;
+
+  firstFriday.setUTCDate(
+    firstFriday.getUTCDate() + daysUntilFriday
+  );
+
   // ------------------------------------------------
-  // Total Fridays attended
+  // Calculate every Friday
   // ------------------------------------------------
 
-  const totalFridaysAttended = fridayAttendances.filter(
-    (friday) => friday.attendedService
-  ).length;
-
-  // ------------------------------------------------
-  // Longest streak
-  // ------------------------------------------------
-
+  let currentStreak = 0;
   let longestStreak = 0;
-  let currentLongestStreak = 0;
+  let totalFridaysAttended = 0;
 
-  for (const friday of fridayAttendances) {
-    if (friday.attendedService) {
-      currentLongestStreak++;
+  let runningStreak = 0;
+
+  for (
+    let friday = new Date(firstFriday);
+    friday <= latestFriday;
+    friday.setUTCDate(friday.getUTCDate() + 7)
+  ) {
+    const dateKey = friday.toISOString().split("T")[0];
+
+    const attendedService = attendanceByDate.get(dateKey) === true;
+
+    if (attendedService) {
+      totalFridaysAttended++;
+
+      runningStreak++;
 
       longestStreak = Math.max(
         longestStreak,
-        currentLongestStreak
+        runningStreak
       );
     } else {
-      // Missed Friday → break the streak
-      currentLongestStreak = 0;
+      // No attendance record OR attendedService === false
+      runningStreak = 0;
     }
   }
 
   // ------------------------------------------------
-  // Current streak
+  // Calculate current streak
   // ------------------------------------------------
 
-  let currentStreak = 0;
+  currentStreak = 0;
 
-  // نبدأ من آخر جمعة ونرجع للخلف
-  for (let i = fridayAttendances.length - 1; i >= 0; i--) {
-    const friday = fridayAttendances[i];
+  for (
+    let friday = new Date(latestFriday);
+    friday >= firstFriday;
+    friday.setUTCDate(friday.getUTCDate() - 7)
+  ) {
+    const dateKey = friday.toISOString().split("T")[0];
 
-    if (friday.attendedService) {
+    const attendedService = attendanceByDate.get(dateKey) === true;
+
+    if (attendedService) {
       currentStreak++;
     } else {
-      // آخر جمعة missed → current streak = 0
-      currentStreak = 0;
       break;
     }
   }

@@ -126,7 +126,7 @@ router.get("/dashboard", verifyTokenAndAdmin, asyncHandler(async (req, res) => {
     totalKhadem,
     totalAttendanceThisMonth,
     nameOfServantsInThisMonth,
-    attendanceByKhadem: attendanceWithStreak,
+    attendanceByKhadem: attendanceWithStreak, 
     upcomingBirthdays,
   });
 }));
