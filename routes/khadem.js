@@ -5,7 +5,7 @@ const {Khadem,validateCreateKhadem,validateUpdateKhadem} = require("../models/Kh
 const {verifyTokenAndAdmin, verifyToken} = require("../middleewares/verifyToken");
 const admin = require("firebase-admin");
 const upload = require("../middleewares/multer");
-
+const calculateFridayStreak = require("../controllers/calculateFirdayStreak");
 
 
 /*
@@ -18,7 +18,7 @@ router.get("/",asyncHandler(
     async(req,res)=>{
     const page = parseInt(req.query.page) || 1;
     const khademperpage = parseInt(req.query.khademperpage) || 2;
-    const { search } = req.query;
+    const search  = req.query.search?.trim();
     const filter = {};
     if (search) {
 
@@ -36,10 +36,24 @@ router.get("/",asyncHandler(
         .select("-password")
         .sort({name:1})
         .skip((page-1)*khademperpage)
-        .limit(khademperpage);
-      
-        res.status(200).json(khademlist);
-    
+        .limit(khademperpage)
+        .lean();
+
+       
+
+    const khademsWithStreak = await Promise.all(
+      khademlist.map(async (khadem) => {
+        const streak = await calculateFridayStreak(
+          khadem._id
+        );
+        return {
+          ...khadem,
+          ...streak,
+        };
+      })
+    );
+
+    res.status(200).json(khademsWithStreak);
 }
 ));
 
