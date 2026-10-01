@@ -6,7 +6,7 @@ const {verifyTokenAndAdmin, verifyToken} = require("../middleewares/verifyToken"
 const admin = require("firebase-admin");
 const upload = require("../middleewares/multer");
 const calculateFridayStreak = require("../controllers/calculateFirdayStreak");
-
+const {Attendance} = require("../models/Attendance");
 
 /*
  * @desc Get all khadems
@@ -23,13 +23,9 @@ router.get("/",asyncHandler(
     if (search) {
 
       filter.$or = [
-
         { name: { $regex: search, $options: "i" } },
-
         { email: { $regex: search, $options: "i" } },
-
       ];
-
     }
         // const authorlist = await Author.find().sort({firstName:-1}).select("firstName lastName");
         const khademlist = await Khadem.find(filter)
@@ -39,15 +35,132 @@ router.get("/",asyncHandler(
         .limit(khademperpage)
         .lean();
 
-       
+    // ----------------------------------------
+    // Current month
+    // ----------------------------------------
+
+    const now = new Date();
+    const startOfMonth = new Date(
+      now.getFullYear(),
+      now.getMonth(),
+      1
+    );
+
+    // ----------------------------------------
+    // Get performance for current month
+    // ----------------------------------------
+
+    const khademIds = khademlist.map(
+      (khadem) => khadem._id
+    );
+
+    const attendanceStats = await Attendance.aggregate([
+      {
+        $match: {
+          khadem: { $in: khademIds },
+          date: { $gte: startOfMonth },
+        },
+      },
+      // 📅 Current Month
+      // ├── totalDays
+      // ├── massCount
+      // ├── serviceCount
+      // ├── openingCount
+      // ├── kashkolCount
+      // └── performanceScore
+      
+      // 📊 All History
+      // ├── currentStreak
+      // ├── longestStreak
+      // └── totalFridaysAttended
+      {
+
+        $group: {
+          _id: "$khadem",
+          totalDays: {
+            $sum: 1,
+          },
+
+          massCount: {
+            $sum: {
+              $cond: ["$attendedMass", 1, 0],
+            },
+          },
+
+          serviceCount: {
+            $sum: {
+              $cond: ["$attendedService", 1, 0],
+            },
+          },
+
+          openingCount: {
+            $sum: {
+              $cond: ["$attendedOpening", 1, 0],
+            },
+          },
+
+          kashkolCount: {
+            $sum: {
+              $cond: ["$preparedKashkol", 1, 0],
+            },
+          },
+        },
+      },
+
+    ]);
+
+    // ----------------------------------------
+
+    // Create performance map
+
+    // ----------------------------------------
+
+    const performanceMap = new Map();
+
+    for (const stats of attendanceStats) {
+
+      const performanceScore =
+        stats.totalDays === 0
+          ? 0
+          : (
+              (
+                stats.massCount +
+                stats.serviceCount +
+                stats.openingCount +
+                stats.kashkolCount
+              ) /
+              (stats.totalDays * 4)
+            ) * 100;
+
+      performanceMap.set(
+        stats._id.toString(),
+        {
+          totalDays: stats.totalDays,
+          massCount: stats.massCount,
+          serviceCount: stats.serviceCount,
+          openingCount: stats.openingCount,
+          kashkolCount: stats.kashkolCount,
+          performanceScore: Math.round(performanceScore),
+        }
+      );
+    }
 
     const khademsWithStreak = await Promise.all(
       khademlist.map(async (khadem) => {
         const streak = await calculateFridayStreak(
           khadem._id
         );
+        const performance = performanceMap.get(khadem._id.toString()) || {
+          totalDays: 0,
+          massCount: 0,
+          serviceCount: 0,
+          openingCount: 0,
+          kashkolCount: 0,
+          performanceScore: 0,
+        };
         return {
           ...khadem,
+          ...performance,
           ...streak,
         };
       })
