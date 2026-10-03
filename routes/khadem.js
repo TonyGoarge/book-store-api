@@ -7,7 +7,7 @@ const admin = require("firebase-admin");
 const upload = require("../middleewares/multer");
 const calculateFridayStreak = require("../controllers/calculateFirdayStreak");
 const {Attendance} = require("../models/Attendance");
-
+const {calculatePerformance} = require("../controllers/calculatePerformance");
 /*
  * @desc Get all khadems
  * @route /api/khadem
@@ -247,8 +247,14 @@ router.get("/:id",asyncHandler(
     async(req,res)=>{
     // const author = authors.find(b=>b.id === parseInt(req.params.id));
     const khadem = await Khadem.findById(req.params.id).select("-password");
+    const performance = await calculatePerformance(req.params.id);
+    const streak = await calculateFridayStreak(req.params.id);
     if(khadem){
-        res.status(200).json(khadem);
+        res.status(200).json({
+          khadem,
+          ...performance,
+          ...streak
+        });
     }
     else{
         res.status(404).json({message:"Author not found"});
