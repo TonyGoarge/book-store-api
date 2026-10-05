@@ -1,5 +1,4 @@
-const { Attendance } = require("../models/Attendance");
-const mongoose = require("mongoose");
+
 // Current Month
 // ├── totalDays
 // ├── massCount
@@ -18,7 +17,12 @@ const mongoose = require("mongoose");
 // totalFridaysAttended: Total number of Fridays attended across all history.
 
 
+const mongoose = require("mongoose");
+const { Attendance } = require("../models/Attendance");
+
 const calculatePerformance = async (khademId) => {
+  const khademObjectId = new mongoose.Types.ObjectId(khademId);
+
   const now = new Date();
 
   const startOfMonth = new Date(
@@ -30,7 +34,7 @@ const calculatePerformance = async (khademId) => {
   const stats = await Attendance.aggregate([
     {
       $match: {
-        khadem: khademId,
+        khadem: khademObjectId,
         date: { $gte: startOfMonth },
       },
     },
@@ -83,18 +87,15 @@ const calculatePerformance = async (khademId) => {
   const data = stats[0];
 
   const performanceScore =
-    data.totalDays === 0
-      ? 0
-      : (
-          (
-            data.massCount +
-            data.serviceCount +
-            data.openingCount +
-            data.kashkolCount
-          ) /
-          (data.totalDays * 4)
-        ) *
-        100;
+    (
+      (
+        data.massCount +
+        data.serviceCount +
+        data.openingCount +
+        data.kashkolCount
+      ) /
+      (data.totalDays * 4)
+    ) * 100;
 
   return {
     totalDays: data.totalDays,

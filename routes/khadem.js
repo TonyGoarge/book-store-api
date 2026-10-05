@@ -247,18 +247,20 @@ router.get("/:id",asyncHandler(
     async(req,res)=>{
     // const author = authors.find(b=>b.id === parseInt(req.params.id));
     const khadem = await Khadem.findById(req.params.id).select("-password");
+
+    if (!khadem) {
+  return res.status(404).json({
+    message:"Khadem not found"
+  });
+}
     const performance = await calculatePerformance(req.params.id);
     const streak = await calculateFridayStreak(req.params.id);
-    if(khadem){
         res.status(200).json({
           khadem,
           ...performance,
           ...streak
         });
-    }
-    else{
-        res.status(404).json({message:"Author not found"});
-    }
+   
 }
 ));
  
