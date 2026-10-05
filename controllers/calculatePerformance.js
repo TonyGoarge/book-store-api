@@ -1,4 +1,22 @@
 const { Attendance } = require("../models/Attendance");
+const mongoose = require("mongoose");
+// Current Month
+// ├── totalDays
+// ├── massCount
+// ├── serviceCount
+// ├── openingCount
+// ├── kashkolCount
+// └── performanceScore
+
+// All History
+// ├── currentStreak
+// ├── longestStreak
+// └── totalFridaysAttended
+
+// currentStreak: Consecutive Fridays attended up to the latest Friday.
+// longestStreak: The highest consecutive-Friday streak ever achieved.
+// totalFridaysAttended: Total number of Fridays attended across all history.
+
 
 const calculatePerformance = async (khademId) => {
   const now = new Date();
