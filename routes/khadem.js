@@ -308,14 +308,31 @@ router.put(
       });
     }
 
-    const updateData = {
-      name: req.body.name,
-      address: req.body.address,
-      phone: req.body.phone,
-      email: req.body.email,
-      church: req.body.church,
-      birthDate: req.body.birthDate,
-    };
+    const updateData = {};
+      if(req.body.name !== undefined ){
+        updateData.name = req.body.name;
+      }
+      if(req.body.address !== undefined ){
+        updateData.address = req.body.address;
+      }
+      if(req.body.phone !== undefined ){
+        updateData.phone = req.body.phone;
+      }
+      if(req.body.email !== undefined ){
+        updateData.email = req.body.email;
+      }
+      if(req.body.church !== undefined ){
+        updateData.church = req.body.church;
+      }
+      if(req.body.service !== undefined ){
+        updateData.service = req.body.service;
+      }
+      if(req.body.birthDate !== undefined ){
+        updateData.birthDate = req.body.birthDate;
+      }
+      if(req.body.password !== undefined ){
+        updateData.password = req.body.password;
+      }
 
     // لو المستخدم رفع صورة
 
@@ -327,8 +344,11 @@ router.put(
     const khadem = await Khadem.findByIdAndUpdate(
       req.params.id,
       { $set: updateData },
-  { returnDocument: "after" }
-);
+      {
+        new: true,
+        runValidators: true
+      }
+    );
     res.status(200).json({
       message: "Khadem updated successfully",
       khadem,

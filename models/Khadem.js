@@ -49,6 +49,12 @@ const khademSchema = new mongoose.Schema({
     birthDate:{
         type: Date,
     },
+    service:{
+        type: String,
+        trim: true,
+        minlength: 3,
+        maxlength: 200,
+    },
     isAdmin:{
         type: Boolean,
         default: false,
@@ -84,6 +90,7 @@ function validateRegisterKhadem(obj){
         phone: Joi.string().trim().min(11).max(20).required(),
         email: Joi.string().trim().min(3).max(200).required(),
         church: Joi.string().trim().min(3).max(200).required(),
+        service: Joi.string().trim().min(3).max(200).required(),
         password: Joi.string().trim().min(6).required(),
         fcmToken: Joi.string().trim().min(3).max(200),
         birthDate: Joi.date(),
@@ -101,18 +108,28 @@ function validateLoginKhadem(obj){
 }
 
 // Validate Update Khadem
-function validateUpdateKhadem(obj){
+function validateUpdateKhadem(obj) {
     const schema = Joi.object({
-        name: Joi.string().trim().min(3).max(15),
-        imageUrl: Joi.string().trim().min(3).max(15),
-        address: Joi.string().trim().min(3).max(15),
-        phone: Joi.string().trim().min(3).max(15),
-        email: Joi.string().trim().min(3).max(15),
-        church: Joi.string().trim().min(3).max(15),
+        name: Joi.string().trim().min(3).max(200),
+
+        imageUrl: Joi.string().trim().min(3).max(200),
+
+        address: Joi.string().trim().min(3).max(200),
+
+        phone: Joi.string().trim().min(11).max(20),
+
+        email: Joi.string().trim().email().max(200),
+
+        church: Joi.string().trim().min(3).max(200),
+        service: Joi.string().trim().min(3).max(200),
         password: Joi.string().trim().min(6),
+
         birthDate: Joi.date(),
+    }).min(1);
+
+    return schema.validate(obj, {
+        stripUnknown: true,
     });
-    return schema.validate(obj);
 }
 module.exports = {
     Khadem,
