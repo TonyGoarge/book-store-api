@@ -43,8 +43,8 @@ const khademSchema = new mongoose.Schema({
     address:{
         type: String,
         trim: true,
-        minlength: 3,
-        maxlength: 15,
+        minlength: 10,
+        maxlength: 250,
     },
     birthDate:{
         type: Date,
@@ -86,7 +86,7 @@ function validateRegisterKhadem(obj){
     const schema = Joi.object({
         name: Joi.string().trim().min(3).max(200).required(),
         imageUrl: Joi.string().trim().min(3).max(200),
-        address: Joi.string().trim().min(3).max(200),
+        address: Joi.string().trim().min(10).max(250),
         phone: Joi.string().trim().min(11).max(20).required(),
         email: Joi.string().trim().min(3).max(200).required(),
         church: Joi.string().trim().min(3).max(200).required(),
@@ -114,7 +114,7 @@ function validateUpdateKhadem(obj) {
 
         imageUrl: Joi.string().trim().min(3).max(200),
 
-        address: Joi.string().trim().min(3).max(200),
+        address: Joi.string().trim().min(10).max(250),
 
         phone: Joi.string().trim().min(11).max(20),
 
