@@ -29,6 +29,8 @@ app.use("/api/attendance", require("./routes/attendance"));
 app.use("/api/statistics", require("./routes/statistics"));
 app.use("/api/password", require("./routes/password"));
 app.use("/api/upload", require("./routes/upload"));
+app.use("/api/trips", require("./routes/trips"));
+
 // Error Handler Middleware
 app.use(notFound);
 app.use(errorHandler);
