@@ -19,7 +19,9 @@ router.get("/",asyncHandler(
     const page = parseInt(req.query.page) || 1;
     const khademperpage = parseInt(req.query.khademperpage) || 2;
     const search  = req.query.search?.trim();
-    const filter = {};
+const filter = {
+  isDeleted: false,
+};
     if (search) {
 
       filter.$or = [
@@ -177,7 +179,9 @@ router.get("/",asyncHandler(
  * @access Public
  */
 router.get("/all", asyncHandler(async (req, res) => {
-  const khadems = await Khadem.find()
+  const khadems = await Khadem.find({
+    isDeleted:false,
+  })
     .select("name _id")
     .sort({ name: 1 });
 
@@ -246,7 +250,7 @@ router.get("/birthdays-today-and-notify", asyncHandler(async (req, res) => {
 router.get("/:id",asyncHandler(
     async(req,res)=>{
     // const author = authors.find(b=>b.id === parseInt(req.params.id));
-    const khadem = await Khadem.findById(req.params.id).select("-password");
+    const khadem = await Khadem.findById({_id:req.params.id,  isDeleted: false,}).select("-password");
 
     if (!khadem) {
   return res.status(404).json({
@@ -355,24 +359,93 @@ router.put(
     });
   }));
 /*
- * @desc Delete author
- * @route /api/authors/:id
+ * @desc Soft delete khadem
+ * @route DELETE /api/khadem/:id
  * @method DELETE
- * @access Private(only admin)
+ * @access Private (Admin)
  */
-router.delete("/:id",verifyTokenAndAdmin,asyncHandler(async(req,res)=>{
-   
-    const khadem = await Khadem.findById(req.params.id);
-    if(khadem){
-        await Khadem.findByIdAndDelete(req.params.id);
-        res.status(200).json({message:"Khadem deleted successfully"});
-    }
-    else{
-        res.status(404).json({message:"Khadem not found"});
+router.delete(
+  "/:id",
+  verifyTokenAndAdmin,
+  asyncHandler(async (req, res) => {
+    const khadem = await Khadem.findOne({
+      _id: req.params.id,
+      isDeleted: false,
+    });
+
+    if (!khadem) {
+      return res.status(404).json({
+        message: "Khadem not found or already deleted.",
+      });
     }
 
-}
-));
+    khadem.isDeleted = true;
+    khadem.deletedAt = new Date();
+
+    await khadem.save();
+
+    res.status(200).json({
+      message: "Khadem deleted successfully.",
+    });
+  })
+);
+
+/*
+ * @desc Restore deleted khadem
+ * @route PATCH /api/khadem/:id/restore
+ * @method PATCH
+ * @access Private (Admin)
+ */
+router.patch(
+  "/:id/restore",
+  verifyTokenAndAdmin,
+  asyncHandler(async (req, res) => {
+    const khadem = await Khadem.findOne({
+      _id: req.params.id,
+      isDeleted: true,
+    });
+
+    if (!khadem) {
+      return res.status(404).json({
+        message: "Deleted khadem not found.",
+      });
+    }
+
+    khadem.isDeleted = false;
+    khadem.deletedAt = null;
+
+    await khadem.save();
+
+    res.status(200).json({
+      message: "Khadem restored successfully.",
+      khadem: {
+        _id: khadem._id,
+        name: khadem.name,
+        email: khadem.email,
+      },
+    });
+  })
+);
+
+/*
+ * @desc Get deleted khadems
+ * @route GET /api/khadem/deleted
+ * @method GET
+ * @access Private (Admin)
+ */
+router.get(
+  "/deleted",
+  verifyTokenAndAdmin,
+  asyncHandler(async (req, res) => {
+    const khadems = await Khadem.find({
+      isDeleted: true,
+    })
+      .select("-password")
+      .sort({ deletedAt: -1 });
+
+    res.status(200).json(khadems);
+  })
+);
 
 
 module.exports = router;

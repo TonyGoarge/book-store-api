@@ -48,7 +48,7 @@ const loginKhadem = asyncHandler(async (req, res) => {
     if (error) {
         return res.status(400).json({ message: error.details[0].message });
     }
-    let khadem = await Khadem.findOne({ email: req.body.email });
+    let khadem = await Khadem.findOne({ email: req.body.email , isDeleted:false });
     if (!khadem) {
         return res.status(400).json({ message: "Invalid email or password" });
     }
