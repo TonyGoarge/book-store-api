@@ -179,11 +179,11 @@ const filter = {
  * @access Public
  */
 router.get("/all", asyncHandler(async (req, res) => {
-  const khadems = await Khadem.find({
-    isDeleted:false,
-  })
-    .select("name _id")
-    .sort({ name: 1 });
+const khadems = await Khadem.find({
+  isDeleted: { $ne: true },
+})
+.select("name _id")
+.sort({ name: 1 });
 
   res.status(200).json(khadems);
 }));
