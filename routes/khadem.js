@@ -364,13 +364,39 @@ router.put(
  * @method DELETE
  * @access Private (Admin)
  */
+// router.delete(
+//   "/:id",
+//   verifyTokenAndAdmin,
+//   asyncHandler(async (req, res) => {
+//     const khadem = await Khadem.findOne({
+//       _id: req.params.id,
+//       isDeleted: false,
+//     });
+
+//     if (!khadem) {
+//       return res.status(404).json({
+//         message: "Khadem not found or already deleted.",
+//       });
+//     }
+
+//     khadem.isDeleted = true;
+//     khadem.deletedAt = new Date();
+
+//     await khadem.save();
+
+//     res.status(200).json({
+//       message: "Khadem deleted successfully.",
+//     });
+//   })
+// );
+
 router.delete(
   "/:id",
   verifyTokenAndAdmin,
   asyncHandler(async (req, res) => {
     const khadem = await Khadem.findOne({
       _id: req.params.id,
-      isDeleted: false,
+      isDeleted: { $ne: true },
     });
 
     if (!khadem) {
@@ -385,7 +411,7 @@ router.delete(
     await khadem.save();
 
     res.status(200).json({
-      message: "Khadem deleted successfully.",
+      message: "Khadem soft deleted successfully.",
     });
   })
 );
